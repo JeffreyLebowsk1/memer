@@ -17,6 +17,11 @@ export type {
   DistractedBoyfriendMemeOptions,
   ThisIsFineMemeOptions,
   OneDoesNotSimplyMemeOptions,
+  GrusPlanMemeOptions,
+  ExitRampMemeOptions,
+  BernieMemeOptions,
+  TradeOfferMemeOptions,
+  StonksMemeOptions,
   GifOptions,
   MemeResult,
 } from './types';

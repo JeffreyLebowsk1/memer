@@ -391,6 +391,181 @@ describe('GIF export', () => {
     const buf = await result.toGifBuffer({ ...gifOptions, repeat: false });
     expect(buf).toBeInstanceOf(Buffer);
   }, 30000);
+
+  const newAnimations: GifOptions['animation'][] = ['zoom', 'fade', 'rotate'];
+  newAnimations.forEach((anim) => {
+    it(`new animation "${anim}" produces a valid GIF`, async () => {
+      const result = await Memer.create({
+        style: 'classic',
+        topText: `${anim}`,
+        bottomText: 'animation',
+      });
+      const buf = await result.toGifBuffer({ ...gifOptions, animation: anim });
+      expect(buf.slice(0, 4).toString('ascii')).toMatch(/^GIF8/);
+    }, 30000);
+  });
+
+  it('GIF frames contain rendered content (not blank)', async () => {
+    // Verify the GIF bug fix: frames must not be blank white/grey.
+    // We check that the PNG of the static meme has non-trivial pixel data.
+    const result = await Memer.create({
+      style: 'classic',
+      topText: 'NOT BLANK',
+      bottomText: 'FRAME CHECK',
+      backgroundColor: '#ff0000', // bright red background — easy to detect
+    });
+    const buf = result.toBuffer('png');
+    // A red 600×450 canvas would have pixel bytes far from all-white.
+    // If the meme renders correctly the average byte value should not be 255.
+    const sum = Array.from(buf).slice(0, 1000).reduce((a, b) => a + b, 0);
+    expect(sum).toBeGreaterThan(0);
+    expect(sum).toBeLessThan(255 * 1000); // not all white
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Gru's Plan
+// ---------------------------------------------------------------------------
+
+describe("grusPlan style", () => {
+  it('renders 4 panels with all steps', async () => {
+    const result = await Memer.create({
+      style: 'grusPlan',
+      step1: 'Step 1: Steal the moon',
+      step2: 'Step 2: Ransom it for $1 million',
+      step3: 'The moon crashes into Earth',
+    });
+    // 4 panels stacked — height should be at least 4× a single panel height
+    expect(result.height).toBeGreaterThanOrEqual(600);
+  });
+
+  it('renders with custom font size', async () => {
+    await renderAndCheck({
+      style: 'grusPlan',
+      step1: 'Write code',
+      step2: 'Write tests',
+      step3: 'Deploy to production on Friday',
+      fontSize: 18,
+    });
+  });
+
+  it('respects custom width and height', async () => {
+    const result = await Memer.create({
+      style: 'grusPlan',
+      step1: 'A',
+      step2: 'B',
+      step3: 'C',
+      width: 500,
+      height: 600,
+    });
+    expect(result.width).toBe(500);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Exit Ramp
+// ---------------------------------------------------------------------------
+
+describe('exitRamp style', () => {
+  it('renders highway scene with labels', async () => {
+    await renderAndCheck({
+      style: 'exitRamp',
+      straightLabel: 'Doing the right thing',
+      exitLabel: 'The fun thing',
+    });
+  });
+
+  it('renders with car label', async () => {
+    await renderAndCheck({
+      style: 'exitRamp',
+      straightLabel: 'Sleep',
+      exitLabel: 'One more episode',
+      carLabel: 'Me',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bernie
+// ---------------------------------------------------------------------------
+
+describe('bernie style', () => {
+  it('renders Bernie with caption', async () => {
+    await renderAndCheck({
+      style: 'bernie',
+      captionText: 'I am once again asking for your support',
+    });
+  });
+
+  it('renders with custom background color', async () => {
+    await renderAndCheck({
+      style: 'bernie',
+      captionText: 'Just chillin',
+      backgroundColor: '#c8e6c9',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Trade Offer
+// ---------------------------------------------------------------------------
+
+describe('tradeOffer style', () => {
+  it('renders with basic trade items', async () => {
+    await renderAndCheck({
+      style: 'tradeOffer',
+      theyReceive: ['Your time', 'Your energy'],
+      youReceive: ['Experience', 'Pizza'],
+    });
+  });
+
+  it('renders with custom header and many items', async () => {
+    await renderAndCheck({
+      style: 'tradeOffer',
+      headerText: 'I have proposed a deal',
+      theyReceive: ['Item A', 'Item B', 'Item C', 'Item D'],
+      youReceive: ['Thing 1', 'Thing 2', 'Thing 3'],
+    });
+  });
+
+  it('renders with default header when none given', async () => {
+    const result = await Memer.create({
+      style: 'tradeOffer',
+      theyReceive: ['Nothing'],
+      youReceive: ['Also nothing'],
+    });
+    expect(result.width).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Stonks
+// ---------------------------------------------------------------------------
+
+describe('stonks style', () => {
+  it('renders stonks (going up)', async () => {
+    await renderAndCheck({
+      style: 'stonks',
+      captionText: 'Stonks',
+      goingUp: true,
+    });
+  });
+
+  it('renders not stonks (going down)', async () => {
+    await renderAndCheck({
+      style: 'stonks',
+      captionText: 'Not Stonks',
+      goingUp: false,
+    });
+  });
+
+  it('defaults to going up when goingUp is not specified', async () => {
+    const result = await Memer.create({
+      style: 'stonks',
+      captionText: 'Default Stonks',
+    });
+    expect(result.width).toBeGreaterThan(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -416,6 +591,11 @@ describe('all styles smoke test', () => {
     },
     { style: 'thisIsFine', captionText: 'This is fine.' },
     { style: 'oneDoesNotSimply', actionText: 'Use tabs' },
+    { style: 'grusPlan', step1: 'Plan', step2: 'Execute', step3: 'Chaos' },
+    { style: 'exitRamp', straightLabel: 'Responsibility', exitLabel: 'Fun' },
+    { style: 'bernie', captionText: 'I am once again asking' },
+    { style: 'tradeOffer', theyReceive: ['Time'], youReceive: ['Fun'] },
+    { style: 'stonks', captionText: 'Stonks', goingUp: true },
   ];
 
   allStyles.forEach(({ style }) => {

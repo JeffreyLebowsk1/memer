@@ -5,13 +5,11 @@ import { drawCenteredText } from '../utils/text';
 
 const DEFAULT_WIDTH = 600;
 const DEFAULT_PANEL_HEIGHT = 250;
-// Drake avatar colors (simplified cartoon placeholders)
+// Drake meme colors
 const DRAKE_BG = '#f5e6c8';
 const PANEL_BORDER = '#999';
 const REJECT_PANEL_BG = '#fff0f0';
 const APPROVE_PANEL_BG = '#f0fff0';
-const DRAKE_BODY_COLOR = '#4a3728';
-const DRAKE_SKIN = '#c8a882';
 
 /**
  * Renders the Drake meme:
@@ -88,9 +86,6 @@ export async function renderDrake(options: DrakeMemeOptions): Promise<Canvas> {
   ctx.moveTo(0, panelHeight);
   ctx.lineTo(width, panelHeight);
   ctx.stroke();
-
-  void DRAKE_BODY_COLOR;
-  void DRAKE_SKIN;
 
   return canvas;
 }

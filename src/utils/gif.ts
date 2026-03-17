@@ -37,19 +37,22 @@ export async function encodeGif(frames: Canvas[], options: GifOptions = {}): Pro
 }
 
 /**
- * Builds animation frames using one of the built-in animation types.
+ * Builds animation frames by calling `drawFrame` for each frame index.
+ * The callback may be synchronous or async; all results are awaited before
+ * the frames array is returned.
  *
- * @param baseCanvas - The fully rendered static meme canvas.
- * @param animationFn - A function that renders a single animation frame onto a fresh canvas context.
- * @param options - GIF options.
+ * @param width - Frame width in pixels.
+ * @param height - Frame height in pixels.
+ * @param totalFrames - Total number of frames to generate.
+ * @param drawFrame - Called once per frame. Receives the frame's 2D context,
+ *   the current frame index, and the total frame count.
  */
-export function buildFrames(
+export async function buildFrames(
   width: number,
   height: number,
   totalFrames: number,
-  drawFrame: (ctx: CanvasRenderingContext2D, frameIndex: number, totalFrames: number) => void
-): Canvas[] {
-  // Lazy import to avoid circular deps
+  drawFrame: (ctx: CanvasRenderingContext2D, frameIndex: number, totalFrames: number) => void | Promise<void>
+): Promise<Canvas[]> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createCanvas } = require('canvas') as typeof import('canvas');
 
@@ -57,7 +60,7 @@ export function buildFrames(
   for (let i = 0; i < totalFrames; i++) {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    drawFrame(ctx, i, totalFrames);
+    await drawFrame(ctx, i, totalFrames);
     frames.push(canvas);
   }
   return frames;
@@ -96,7 +99,7 @@ export function getAnimationDrawer(
     case 'flash':
       return flashDrawer(drawBase);
     case 'slide':
-      return slideDrawer(drawBase, texts);
+      return slideDrawer(drawBase);
     default:
       return () => { /* no-op */ };
   }
@@ -169,8 +172,7 @@ function flashDrawer(
 }
 
 function slideDrawer(
-  drawBase: (ctx: CanvasRenderingContext2D) => void,
-  texts: string[]
+  drawBase: (ctx: CanvasRenderingContext2D) => void
 ): (ctx: CanvasRenderingContext2D, frameIndex: number, totalFrames: number) => void {
   return (ctx, frameIndex, totalFrames) => {
     const progress = frameIndex / (totalFrames - 1 || 1);
@@ -179,8 +181,6 @@ function slideDrawer(
     ctx.translate(0, slideOffset);
     drawBase(ctx);
     ctx.restore();
-    // Store for meme-specific renderers
     (ctx as CanvasRenderingContext2D & { _slideProgress?: number })._slideProgress = progress;
-    void texts; // used by caller context
   };
 }

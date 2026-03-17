@@ -13,13 +13,18 @@ export type MemeStyle =
   | 'changeMyMind'
   | 'distractedBoyfriend'
   | 'thisIsFine'
-  | 'oneDoesNotSimply';
+  | 'oneDoesNotSimply'
+  | 'grusPlan'
+  | 'exitRamp'
+  | 'bernie'
+  | 'tradeOffer'
+  | 'stonks';
 
 /** Output image format for static memes. */
 export type ImageFormat = 'png' | 'jpeg';
 
 /** GIF animation type for animated export. */
-export type GifAnimation = 'typewriter' | 'bounce' | 'shake' | 'flash' | 'slide';
+export type GifAnimation = 'typewriter' | 'bounce' | 'shake' | 'flash' | 'slide' | 'zoom' | 'fade' | 'rotate';
 
 /** Text alignment within a meme panel. */
 export type TextAlign = 'left' | 'center' | 'right';
@@ -178,6 +183,77 @@ export interface OneDoesNotSimplyMemeOptions extends BaseMemeOptions {
   fontSize?: number;
 }
 
+/**
+ * Options for the Gru's Plan meme style.
+ * Four-panel comic where the last panel repeats step 3 with a horrified reaction.
+ * Inspired by the Despicable Me villain Gru.
+ */
+export interface GrusPlanMemeOptions extends BaseMemeOptions {
+  style: 'grusPlan';
+  /** Step 1: The first part of the plan. */
+  step1: string;
+  /** Step 2: The second part of the plan. */
+  step2: string;
+  /** Step 3: The punchline / unexpected outcome. */
+  step3: string;
+  fontSize?: number;
+}
+
+/**
+ * Options for the Exit Ramp meme style.
+ * Car on a highway ignoring the straight path and swerving onto the exit ramp.
+ * Used to show preferring something unexpected over the obvious choice.
+ */
+export interface ExitRampMemeOptions extends BaseMemeOptions {
+  style: 'exitRamp';
+  /** Label for the straight highway option (the sensible/boring choice). */
+  straightLabel: string;
+  /** Label for the exit ramp option (the exciting/chaotic choice). */
+  exitLabel: string;
+  /** Optional label for the car/driver. */
+  carLabel?: string;
+  fontSize?: number;
+}
+
+/**
+ * Options for the Bernie meme style.
+ * Bernie Sanders sitting in mittens — place him anywhere with a caption.
+ */
+export interface BernieMemeOptions extends BaseMemeOptions {
+  style: 'bernie';
+  /** Caption text displayed below or beside Bernie. */
+  captionText: string;
+  fontSize?: number;
+}
+
+/**
+ * Options for the Trade Offer meme style.
+ * "I have made you a trade offer" — two columns showing what each party gives and receives.
+ */
+export interface TradeOfferMemeOptions extends BaseMemeOptions {
+  style: 'tradeOffer';
+  /** Items the first party (you) receive. */
+  theyReceive: string[];
+  /** Items the second party receives (what you give). */
+  youReceive: string[];
+  /** Optional header/title text. Defaults to "I have made you a trade offer". */
+  headerText?: string;
+  fontSize?: number;
+}
+
+/**
+ * Options for the Stonks meme style.
+ * A chart going up ("Stonks") or down ("Not Stonks") with a caption.
+ */
+export interface StonksMemeOptions extends BaseMemeOptions {
+  style: 'stonks';
+  /** Whether the chart is going up (stonks) or down (not stonks). Defaults to true. */
+  goingUp?: boolean;
+  /** Caption text overlaid on the chart. */
+  captionText: string;
+  fontSize?: number;
+}
+
 /** Union of all style-specific option types. */
 export type MemeOptions =
   | ClassicMemeOptions
@@ -191,7 +267,12 @@ export type MemeOptions =
   | ChangeMyMindMemeOptions
   | DistractedBoyfriendMemeOptions
   | ThisIsFineMemeOptions
-  | OneDoesNotSimplyMemeOptions;
+  | OneDoesNotSimplyMemeOptions
+  | GrusPlanMemeOptions
+  | ExitRampMemeOptions
+  | BernieMemeOptions
+  | TradeOfferMemeOptions
+  | StonksMemeOptions;
 
 /** Options controlling GIF export. */
 export interface GifOptions {
